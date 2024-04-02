@@ -6,6 +6,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.webdriver import WebDriver as FirefoxBase
 from selenium.webdriver.remote.webdriver import WebDriver as WebDriverBase
 from selenium.webdriver.support import expected_conditions as EC
@@ -72,7 +73,7 @@ class Firefox(WebdriverMixin, WebDriver, FirefoxBase):
         self.get("about:blank")
 
 
-(TimeoutException, By, Keys, FirefoxOptions, FirefoxBase, EC, WebDriverWait,) = (
+(
     TimeoutException,
     By,
     Keys,
@@ -80,4 +81,14 @@ class Firefox(WebdriverMixin, WebDriver, FirefoxBase):
     FirefoxBase,
     EC,
     WebDriverWait,
+    Service,
+) = (
+    TimeoutException,
+    By,
+    Keys,
+    FirefoxOptions,
+    FirefoxBase,
+    EC,
+    WebDriverWait,
+    Service,
 )

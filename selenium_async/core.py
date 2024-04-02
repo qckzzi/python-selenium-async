@@ -4,7 +4,7 @@ from asyncio import AbstractEventLoop
 from contextlib import asynccontextmanager
 from typing import Callable, Optional, TypeVar
 
-from selenium_async._selenium import Firefox, FirefoxOptions, WebDriver
+from selenium_async._selenium import Firefox, FirefoxOptions, Service, WebDriver
 from selenium_async.options import BrowserType, Options
 from selenium_async.pool import Pool, default_pool
 
@@ -16,6 +16,8 @@ async def run_sync(
     *,
     browser: BrowserType = "firefox",
     headless: bool = True,
+    executable_path: str,
+    binary_location: str,
     loop: Optional[AbstractEventLoop] = None,
     pool: Optional[Pool] = None,
 ) -> T:
@@ -24,7 +26,12 @@ async def run_sync(
     if pool is None:
         pool = default_pool()
 
-    options = Options(browser=browser, headless=headless)
+    options = Options(
+        browser=browser,
+        headless=headless,
+        executable_path=executable_path,
+        binary_location=binary_location,
+    )
 
     async with use_browser(options=options, pool=pool) as driver:
         return await asyncio.to_thread(func, driver)
@@ -74,13 +81,6 @@ async def use_browser(
 
         try:
             yield driver
-            if pool.blank_page_after_use:
-                driver.get_blank()
-
-            # if successfully finishes, add driver back to pool
-            if options not in pool.resources:
-                pool.resources[options] = []
-            pool.resources[options].append(driver)
         except:
             # if error, don't return driver back to pool
             try:
@@ -89,6 +89,7 @@ async def use_browser(
                 pass
             raise
     finally:
+        driver.quit()
         pool.semaphore.release()
 
 
@@ -102,9 +103,14 @@ def launch_sync(options: Optional[Options] = None) -> WebDriver:
     if options.browser == "firefox":
         firefox_options = FirefoxOptions()
         if options.headless:
-            firefox_options.headless = True
+            firefox_options.add_argument("--headless")
 
-        return Firefox(options=firefox_options)
+        firefox_options.binary_location = options.binary_location
+
+        return Firefox(
+            options=firefox_options,
+            service=Service(executable_path=options.executable_path),
+        )
     if options.browser == "chrome":
         raise NotImplementedError(f"@TODO Implement browser {repr(options.browser)}")
 

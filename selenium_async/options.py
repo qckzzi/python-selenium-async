@@ -9,3 +9,5 @@ class Options:
     _: KW_ONLY
     browser: BrowserType = "firefox"
     headless: bool = True
+    executable_path: str
+    binary_location: str
