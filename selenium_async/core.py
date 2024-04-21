@@ -2,6 +2,7 @@ import asyncio
 import random
 from asyncio import AbstractEventLoop
 from contextlib import asynccontextmanager
+import psutil
 from typing import Callable, Optional, TypeVar
 
 from selenium_async._selenium import Firefox, FirefoxOptions, Service, WebDriver
@@ -89,7 +90,10 @@ async def use_browser(
                 pass
             raise
     finally:
+        pid = driver.service.process.pid
         driver.quit()
+        driver.close()
+        psutil.Process(pid).terminate()
         pool.semaphore.release()
 
 
